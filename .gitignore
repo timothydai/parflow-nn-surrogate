@@ -1,0 +1,6 @@
+checkpoints/
+data/sample_data/
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*.out

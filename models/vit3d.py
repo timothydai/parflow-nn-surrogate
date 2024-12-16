@@ -1,8 +1,5 @@
 import math
 import os
-import operator
-from functools import reduce
-from functools import partial
 
 import torch
 import torch.nn as nn

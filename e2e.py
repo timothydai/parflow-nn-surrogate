@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import os
+
 os.environ["EXPERIMENT_SEED"] = "0"
 
 import pandas as pd
@@ -94,10 +95,12 @@ def test_e2e(args):
     autoencoder.eval()
     autoencoder.to(device)
 
-    assert len(stage1_test_dataset) == len(stage2_test_dataset) and len(stage2_test_dataset) == len(stage3_test_dataset)
+    assert len(stage1_test_dataset) == len(stage2_test_dataset) and len(
+        stage2_test_dataset
+    ) == len(stage3_test_dataset)
     print(f"Testing on {len(stage1_test_dataset)} sample(s).")
     with torch.no_grad():
-        mape_by_t = [0 for _ in range(16 + 16 + 366)]
+        mape_by_t = [0 for _ in range(16 + 16 + 365)]
         mape_by_b = [0 for _ in range(len(stage1_test_dataset))]
         mae_by_b = [0 for _ in range(len(stage1_test_dataset))]
 
@@ -106,7 +109,10 @@ def test_e2e(args):
             (stage2_x, stage2_y),
             (stage3_x, stage3_y),
         ) in enumerate(
-            tqdm.tqdm(zip(stage1_test_loader, stage2_test_loader, stage3_test_loader), total=len(stage1_test_dataset))
+            tqdm.tqdm(
+                zip(stage1_test_loader, stage2_test_loader, stage3_test_loader),
+                total=len(stage1_test_dataset),
+            )
         ):
             preds = []
             targets = []
@@ -116,15 +122,15 @@ def test_e2e(args):
             preds.append(pred)
             targets.append(stage1_y)
 
-            # Replace 'initial pressure' input with prediction from previous stage.
-            stage2_x[..., 7] = pred[..., 0]
+            # Replace initial pressure input with final time-step prediction from previous stage.
+            stage2_x[..., 7] = pred[:, -1:, ..., 0]
             pred = stage2_model(stage2_x).contiguous()
 
             preds.append(pred)
             targets.append(stage2_y)
 
-            # Replace 'initial pressure' input with prediction from previous stage.
-            stage3_x[..., 7] = pred[..., 0]
+            # Replace initial pressure input with final time-step prediction from previous stage.
+            stage3_x[..., 7] = pred[:, -1:, ..., 0]
             stage3_x = time_series.shrink_input(stage3_x, avg_pool_3d)
             pred = stage3_model(stage3_x).contiguous()
             pred = autoencoder.decode(pred)
@@ -138,7 +144,9 @@ def test_e2e(args):
                 mape_by_t[t] += tm.functional.mean_absolute_percentage_error(
                     preds[:, t], targets[:, t]
                 ).item()
-            mape_by_b[i] = tm.functional.mean_absolute_percentage_error(preds, targets).item()
+            mape_by_b[i] = tm.functional.mean_absolute_percentage_error(
+                preds, targets
+            ).item()
             mae_by_b[i] = tm.functional.mean_absolute_error(preds, targets).item()
 
     mape_by_t = [m / len(stage1_test_dataset) for m in mape_by_t]
@@ -149,7 +157,6 @@ def test_e2e(args):
     pd.DataFrame(list(zip(mape_by_b, mae_by_b)), columns=["mape", "mae"]).to_csv(
         save_dir / "mape_by_b.csv", index=False
     )
-
 
 
 if __name__ == "__main__":
@@ -194,4 +201,3 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     test_e2e(args)
-

@@ -1,18 +1,18 @@
-import pathlib
-import numpy as np
 import os
+import pathlib
+
+import numpy as np
 import pandas as pd
+from sklearn import model_selection
 import torch
 import torchvision
-from sklearn import model_selection
 import tqdm
 
 from data import utils
 
 
 def get_xs_ys_from_data_dir(data_dir, mode):
-    num_ts_to_sample = 16 if mode == "stage3" else 16
-    # 366
+    num_ts_to_sample = 365 if mode == "stage3" else 16
     simulation_dirs = list(data_dir.glob("*"))
     print("Collecting data...")
     xs, ys = [], []
@@ -80,7 +80,7 @@ class TimeSeriesDataset(torch.utils.data.Dataset):
             random_state=int(os.environ["EXPERIMENT_SEED"]),
         )
 
-        self._xs = self._ys = None
+        self._xs, self._ys = None, None
         if dataset_mode == "train":
             self._xs = xs[train_bs]
             self._ys = ys[train_bs]

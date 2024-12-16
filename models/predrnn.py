@@ -1,9 +1,8 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-
-import os
 
 torch.manual_seed(int(os.environ["EXPERIMENT_SEED"]))
 
@@ -85,9 +84,7 @@ class CausalLSTMCell(nn.Module):
 
 
 class PredRNN(nn.Module):
-    def __init__(
-        self, num_input_variables, hidden_size, num_layers, use_time_encs=True
-    ):
+    def __init__(self, num_input_variables, hidden_size, num_layers):
         super(PredRNN, self).__init__()
         self.cells = nn.ModuleList()
 
@@ -101,27 +98,11 @@ class PredRNN(nn.Module):
         self.hidden_size = hidden_size
 
         self.space_embed = nn.Linear(num_input_variables, self.hidden_size, bias=False)
-        # self.time_embed = nn.Linear(6, self.hidden_size, bias=False)
-        self.use_time_encs = use_time_encs
-
-        print(sum(p.numel() for p in self.space_embed.parameters() if p.requires_grad))
-        print(sum(p.numel() for p in self.cells.parameters() if p.requires_grad))
-        print(num_layers)
-        print(sum(p.numel() for p in self.ghu.parameters() if p.requires_grad))
-        print(sum(p.numel() for p in self.proj.parameters() if p.requires_grad))
-
-    def register_hooks(self):
-        pass
-
-    def get_tracked(self):
-        return None
 
     def forward(self, x):
         b_dim, t_dim, x_dim, y_dim, z_dim, c_dim = x.shape
 
         x = self.space_embed(x)
-        print(1, x.shape)
-
         x = x.permute(0, 1, 5, 2, 3, 4)
 
         h_t = [
@@ -146,17 +127,11 @@ class PredRNN(nn.Module):
         for t in range(t_dim):
             x_t = x[:, t, ...]
             h_t[0], c_t[0], m = self.cells[0](x_t, h_t[0], c_t[0], m)
-            print(2, h_t[0].shape)
             z = self.ghu(h_t[0], z)
-            print(3, z.shape)
             h_t[1], c_t[1], m = self.cells[1](z, h_t[1], c_t[1], m)
-            print(4, h_t[1].shape)
             for i in range(2, self.num_layers):
                 h_t[i], c_t[i], m = self.cells[i](h_t[i - 1], h_t[i], c_t[i], m)
-                print(i, h_t[1].shape)
-
             out.append(self.proj(h_t[self.num_layers - 1]))
-            print("last", out[-1].shape)
 
         out = torch.stack(out, dim=1)
         out = out.permute(0, 1, 3, 4, 5, 2)

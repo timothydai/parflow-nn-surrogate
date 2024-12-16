@@ -1,10 +1,11 @@
-import pathlib
-import numpy as np
 import os
+import pathlib
+
+import numpy as np
 import pandas as pd
+from sklearn import model_selection
 import torch
 import torchvision
-from sklearn import model_selection
 import tqdm
 
 from data import utils
@@ -47,7 +48,7 @@ class SingleFrameDataset(torch.utils.data.Dataset):
             random_state=int(os.environ["EXPERIMENT_SEED"]),
         )
 
-        self._xs = self._ys = None
+        self._xs, self._ys = None, None
         if dataset_mode == "train":
             self._xs = xs[train_bs]
             self._ys = ys[train_bs]
@@ -105,4 +106,3 @@ class DummySingleFrameDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         return self._x[idx].to(self._device), self._y[idx].to(self._device)
-

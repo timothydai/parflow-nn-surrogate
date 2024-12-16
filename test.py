@@ -1,10 +1,11 @@
 import argparse
 import glob
 import os
+import pathlib
+import time
 
 os.environ["EXPERIMENT_SEED"] = "0"
 
-import pathlib
 import pandas as pd
 import torch
 import torchmetrics as tm
@@ -12,8 +13,6 @@ import tqdm
 
 from data import time_series, single_frame
 from models import cnn_autoencoder
-
-import time
 
 
 def test(args):
@@ -63,7 +62,7 @@ def test(args):
             autoencoder = cnn_autoencoder.CNNAutoencoder()
             print("WARNING: Encoding targets with a random autoencoder.")
         else:
-            autoencoder = torch.load(autoencoder_ckpt_path)["model"]
+            autoencoder = torch.load(args.autoencoder_ckpt_path)["model"]
         autoencoder.eval()
         autoencoder.to(device)
 

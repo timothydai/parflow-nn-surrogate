@@ -1,5 +1,9 @@
 # Machine learning surrogates for efficient hydrologic modeling: Insights from stochastic simulations of managed aquifer recharge
 
+## Installation
+
+Install all required modules with `pip install -r requirements.txt`.
+
 ## Training commands
 
 To train an autoencoder:

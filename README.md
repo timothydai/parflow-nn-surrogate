@@ -34,25 +34,25 @@ However, testing can also be initiated separately with the commands below.
 
 To test an autoencoder:
 ```python
-python test.py --mode autoencoder --ckpt <ckpt>
+python test.py --mode autoencoder --ckpt <ckpt> [--OPTIONS]
 ```
 
 To test a Stage 1 surrogate:
 ```python
-python test.py --mode stage1 --ckpt <ckpt>
+python test.py --mode stage1 --ckpt <ckpt> [--OPTIONS]
 ```
 
 To test a Stage 2 surrogate:
 ```python
-python test.py --mode stage2 --ckpt <ckpt>
+python test.py --mode stage2 --ckpt <ckpt> [--OPTIONS]
 ```
 
 To test a Stage 3 surrogate:
 ```python
-python test.py --mode stage3 --ckpt <ckpt>
+python test.py --mode stage3 --ckpt <ckpt> [--OPTIONS]
 ```
 
-### E2E evaluation commands
+### E2E evaluation command
 
 Three checkpoints can be tested together in an end-to-end fashion using the following command:
 
@@ -65,5 +65,6 @@ python e2e.py \
   --stage1_data_dir <stage1_data_dir> \
   --stage2_data_dir <stage2_data_dir> \
   --stage3_data_dir <stage3_data_dir> \
-  --autoencoder_ckpt_path <autoencoder_ckpt_path>
+  --autoencoder_ckpt_path <autoencoder_ckpt_path> \
+  [--OPTIONS]
 ```

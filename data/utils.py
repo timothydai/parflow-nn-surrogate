@@ -1,11 +1,11 @@
 import glob
 import json
-
-import torch
-import numpy as np
 import os
+
+import numpy as np
 import pandas as pd
 from parflowio import pyParflowio
+import torch
 
 
 def collect_targets_from_one_simulation(simulation_dir, num_ts_to_sample=None):

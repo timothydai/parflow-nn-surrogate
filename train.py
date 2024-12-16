@@ -1,8 +1,8 @@
 import argparse
+from datetime import datetime
 import os
 import pathlib
 import time
-from datetime import datetime
 
 import torch
 import torchmetrics as tm
@@ -76,7 +76,7 @@ def train(args):
                 hidden_size=args.hidden_size or 64,
             )
         elif args.model == "CNN3d":
-            model = cnn3d.CNN3dBN(
+            model = cnn3d.CNN3d(
                 num_input_variables=num_input_variables,
                 hidden_size=args.hidden_size or 64,
             )
@@ -93,6 +93,7 @@ def train(args):
                 modes2=10,
                 modes3=10,
                 width=args.hidden_size or 32,
+                is_stage_3=args.mode == "stage3",
             )
         elif args.model == "UFNO4d":
             model = ufno4d.UFNO4d(
@@ -104,6 +105,7 @@ def train(args):
                 modes3=10,
                 modes4=10,
                 width=args.hidden_size or 32,
+                is_stage_3=args.mode == "stage3",
             )
         elif args.model == "ViT4d":
             model = vit4d.ViT4d(
@@ -154,7 +156,6 @@ def train(args):
             val_dataset = single_frame.DummySingleFrameDataset(
                 device,
             )
-
     elif args.data_dir:
         if args.mode in ["stage1", "stage2", "stage3"]:
             xs, ys = time_series.get_xs_ys_from_data_dir(args.data_dir, args.mode)
@@ -213,7 +214,7 @@ def train(args):
             autoencoder = cnn_autoencoder.CNNAutoencoder()
             print("WARNING: Encoding targets with a random autoencoder.")
         else:
-            autoencoder = torch.load(autoencoder_ckpt_path)["model"]
+            autoencoder = torch.load(args.autoencoder_ckpt_path)["model"]
         autoencoder.eval()
         autoencoder.to(device)
 

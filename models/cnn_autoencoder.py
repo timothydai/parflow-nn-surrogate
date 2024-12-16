@@ -72,4 +72,3 @@ class CNNAutoencoder(nn.Module):
         else:
             x = x.reshape(_b, _t, _x, _y, _z, _c)
         return x
-

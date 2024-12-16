@@ -1,13 +1,11 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from layers.batchnorm4d import BatchNorm4d
-from layers.conv4d import Conv4d
-from layers.convtranspose4d import ConvTranspose4d
+from layers import batchnorm4d, conv4d, convtranspose4d
 
-
-import os
 
 torch.manual_seed(int(os.environ["EXPERIMENT_SEED"]))
 
@@ -15,14 +13,9 @@ torch.manual_seed(int(os.environ["EXPERIMENT_SEED"]))
 class SpectralConv4d(nn.Module):
     def __init__(self, in_channels, out_channels, modes1, modes2, modes3, modes4):
         super(SpectralConv4d, self).__init__()
-        """
-        3D Fourier layer. It does FFT, linear transform, and Inverse FFT.    
-        """
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.modes1 = (
-            modes1  # Number of Fourier modes to multiply, at most floor(N/2) + 1
-        )
+        self.modes1 = modes1
         self.modes2 = modes2
         self.modes3 = modes3
         self.modes4 = modes4
@@ -77,17 +70,13 @@ class SpectralConv4d(nn.Module):
             )
         )
 
-    # Complex multiplication
     def compl_mul3d(self, input, weights):
-        # (batch, in_channel, x,y,t ), (in_channel, out_channel, x,y,t) -> (batch, out_channel, x,y,t)
         return torch.einsum("bitxyz,iotxyz->botxyz", input, weights)
 
     def forward(self, x):
         batchsize = x.shape[0]
-        # Compute Fourier coeffcients up to factor of e^(- something constant)
         x_ft = torch.fft.rfftn(x)
 
-        # Multiply relevant Fourier modes
         out_ft = torch.zeros(
             batchsize,
             self.out_channels,
@@ -125,10 +114,8 @@ class SpectralConv4d(nn.Module):
             )
         )
 
-        # Return to physical space
         x = torch.fft.irfftn(
             out_ft,
-            # s=(x.size(-3), x.size(-2), x.size(-1))
             s=(x.size(-4), x.size(-3), x.size(-2), x.size(-1)),
         )
         return x
@@ -205,7 +192,7 @@ class U_net(nn.Module):
 
     def conv(self, in_planes, output_channels, kernel_size, stride, dropout_rate):
         return nn.Sequential(
-            Conv4d(
+            conv4d.Conv4d(
                 in_channels=in_planes,
                 out_channels=output_channels,
                 kernel_size=kernel_size,
@@ -213,14 +200,14 @@ class U_net(nn.Module):
                 padding=(kernel_size - 1) // 2,
                 bias=False,
             ),
-            BatchNorm4d(output_channels),
+            batchnorm4d.BatchNorm4d(output_channels),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Dropout(dropout_rate),
         )
 
     def deconv(self, input_channels, output_channels):
         return nn.Sequential(
-            ConvTranspose4d(
+            convtranspose4d.ConvTranspose4d(
                 in_channels=input_channels,
                 out_channels=output_channels,
                 kernel_size=4,
@@ -233,7 +220,7 @@ class U_net(nn.Module):
     def output(
         self, input_channels, output_channels, kernel_size, stride, dropout_rate
     ):
-        return Conv4d(
+        return conv4d.Conv4d(
             in_channels=input_channels,
             out_channels=output_channels,
             kernel_size=kernel_size,
@@ -287,9 +274,6 @@ class SimpleBlock4d(nn.Module):
         self, num_F_layers, num_UF_layers, modes1, modes2, modes3, modes4, width
     ):
         super(SimpleBlock4d, self).__init__()
-        """
-        U-FNO contains 3 Fourier layers and 3 U-Fourier layers.
-        """
         self.modes1 = modes1
         self.modes2 = modes2
         self.modes3 = modes3
@@ -335,38 +319,33 @@ class UFNO4d(nn.Module):
         modes3,
         modes4,
         width,
+        is_stage_3=False,
     ):
         super(UFNO4d, self).__init__()
 
-        """
-        A wrapper function
-        """
         self.width = width
         self.space_embed = nn.Linear(num_input_variables, self.width, bias=False)
-        # self.time_embed = nn.Linear(6, self.width, bias=False)
 
         self.conv1 = SimpleBlock4d(
             num_F_layers, num_UF_layers, modes1, modes2, modes3, modes4, width
         )
+        self.is_stage_3 = is_stage_3
 
     def forward(self, x):
         b_dim, t_dim, x_dim, y_dim, z_dim, c_dim = x.shape
 
         x = self.space_embed(x)
-
         x = x.permute(0, 5, 1, 2, 3, 4)
-        if t_dim > 100:
+        if self.is_stage_3:
             x = F.pad(x, (0, 7, 0, 0, 0, 6, 0, 3), "constant", 0)
         else:
             x = F.pad(x, (0, 7), "constant", 0)
-
         output = self.conv1(x)
-
-        if t_dim > 100:
+        if self.is_stage_3:
             output = output.view(b_dim, t_dim + 3, x_dim + 6, y_dim, z_dim + 7, 1)[
                 ..., :-3, :-6, :, :-7, :
             ]
         else:
             output = output.view(b_dim, t_dim, x_dim, y_dim, z_dim + 7, 1)[..., :-7, :]
 
-        return output  # .squeeze()
+        return output

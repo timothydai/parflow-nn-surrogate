@@ -4,6 +4,13 @@
 
 Install all required modules with `pip install -r requirements.txt`.
 
+### Get sample data
+
+In `sample_data/`, we provide sample simulations that can serve as sample data for any of the three stages.
+Unzip the data with `sh data/unzip_all.sh`.
+Note that by default, `--data_dir` in all scripts point to `data/sample_data`.
+Any external data, provided through the `--data_dir` option, must be formatted similarly to `data/sample_data`.
+
 ## Training commands
 
 To train an autoencoder:
@@ -25,11 +32,12 @@ To train a Stage 3 surrogate:
 ```python
 python train.py --name <name> --mode stage3 --model <model> --autoencoder_ckpt_path <autoencoder_ckpt_path> [--OPTIONS]
 ```
-* Instead of providing an autoencoder checkpoint, users can also use a randomly initialized autoencoder by simply omitting the `--autoencoder_ckpt_path` option.
 
-NOTE: By default, all training commands use sample data in `data/sample_data`, which can serve as sample data for any of the three stages.
-Any external data, provided through the `--data_dir` option, must be formatted similarly to `data/sample_data`.
-Additionally, the `--use_dummy_dataset` flag is provided to quickly load correctly sized but randomly initialized tensors.
+Notable options:
+
+* Start `--name` with "test" to run without saving checkpoints or tensorboard data.
+* The `--use_dummy_dataset` flag is provided to quickly load correctly sized but randomly initialized tensors.
+* Instead of providing an autoencoder checkpoint in Stage 3 training, users can also use a randomly initialized autoencoder by simply omitting the `--autoencoder_ckpt_path` option.
 
 ## Evaluation commands
 

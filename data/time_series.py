@@ -12,7 +12,7 @@ from data import utils
 
 def get_xs_ys_from_data_dir(data_dir, mode):
     num_ts_to_sample = 365 if mode == "stage3" else 16
-    simulation_dirs = list(data_dir.glob("*"))
+    simulation_dirs = [path for path in list(data_dir.glob("*")) if path.is_dir()]
     print("Collecting data...")
     xs, ys = [], []
     for simulation_dir in tqdm.tqdm(simulation_dirs):

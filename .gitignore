@@ -1,5 +1,6 @@
 checkpoints/
-data/sample_data/
+data/sample_data/*
+!data/sample_data/*.zip
 __pycache__/
 */__pycache__/
 */*/__pycache__/

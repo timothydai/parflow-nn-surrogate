@@ -6,8 +6,8 @@ Install all required modules with `pip install -r requirements.txt`.
 
 ### Get sample data
 
-In `sample_data/`, we provide sample simulations that can serve as sample data for any of the three stages.
-Unzip the data with `sh data/unzip_all.sh`.
+In `data/sample_data/`, we provide sample simulations that can serve as sample data for any of the three stages.
+Unzip the data with `sh data/sample_data/unzip_all.sh`.
 Note that by default, `--data_dir` in all scripts point to `data/sample_data`.
 Any external data, provided through the `--data_dir` option, must be formatted similarly to `data/sample_data`.
 

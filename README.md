@@ -1,6 +1,6 @@
 # Machine learning surrogates for efficient hydrologic modeling: Insights from stochastic simulations of managed aquifer recharge
 
-**Authors**: Timothy Dai, Zach Perzan, Kate Maher
+**Authors**: Timothy Dai, Kate Maher, Zach Perzan
 
 **Paper**: Accepted for publication in *Journal of Hydrology*. DOI to be assigned.
 

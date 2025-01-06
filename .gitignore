@@ -1,6 +1,7 @@
 checkpoints/
 data/sample_data/*
 !data/sample_data/*.txt
+!data/sample_data/*.sh
 __pycache__/
 */__pycache__/
 */*/__pycache__/

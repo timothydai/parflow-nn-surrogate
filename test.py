@@ -122,7 +122,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_dir",
         type=pathlib.Path,
-        default="data/sample_data",
     )
     parser.add_argument(
         "--normalization",

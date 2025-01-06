@@ -16,7 +16,7 @@ def get_xs_ys_from_data_dir(data_dir, mode):
     ys = []
     for simulation_dir in tqdm.tqdm(simulation_dirs):
         y, initial_pressure, ts = utils.collect_targets_from_one_simulation(
-            simulation_dir, num_ts_to_sample=100
+            simulation_dir, mode, num_ts_to_sample=100
         )  # [t, x, y, z, c].
         y = torch.concat([initial_pressure[None, ..., None], y], axis=0)
         ys.append(y)

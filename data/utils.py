@@ -8,8 +8,39 @@ from parflowio import pyParflowio
 import torch
 
 
-def collect_targets_from_one_simulation(simulation_dir, num_ts_to_sample=None):
-    pfb_files = sorted(simulation_dir.glob("*.press.*.pfb"))
+def collect_targets_from_one_simulation(simulation_dir, mode, num_ts_to_sample=None):
+    if num_ts_to_sample is not None and mode == "stage3":
+        raise ValueError("Stage 3 should not perform geometric time-step sampling.")
+    pfb_files = None
+    if mode in ["stage1", "stage2", "autoencoder"]:
+        pfb_files = sorted(simulation_dir.glob("*.press.*.pfb"))
+    elif mode == "stage3":
+        # Stage 3 pressure fields are also divided into infiltration/relaxation substages.
+        infil_subdirs = sorted(simulation_dir.glob("infil*"))
+        relax_subdirs = sorted(simulation_dir.glob("relax*"))
+        pfb_files = []
+        for i, (infil_subdir, relax_subdir) in enumerate(
+            zip(infil_subdirs, relax_subdirs)
+        ):
+            infil_pfbs = sorted(infil_subdir.glob("*.press.*.pfb"))
+            relax_pfbs = sorted(relax_subdir.glob("*.press.*.pfb"))
+            if i == 0:
+                pfb_files.append(infil_pfbs[0])
+
+            infil_pfmetadata = _parse_pfmetadata(
+                (infil_subdir / "clarklind.out.pfmetadata")
+            )
+            dump_step = float(
+                infil_pfmetadata["inputs"]["configuration"]["data"][
+                    "TimingInfo.DumpInterval"
+                ]
+            )
+            for j in range(len(infil_pfbs) - 1, -1, -int(1 / dump_step)):
+                pfb_files.append(infil_pfbs[j])
+            # The last infil file is the first relax file.
+            pfb_files.extend(relax_pfbs[1:])
+        pfb_files = pfb_files[::2]  # Sample every other target file.
+
     if len(pfb_files) == 0:
         raise ValueError(f"No .pfb files found in {str(simulation_dir)}.")
     elif num_ts_to_sample and len(pfb_files) < num_ts_to_sample:
@@ -21,7 +52,7 @@ def collect_targets_from_one_simulation(simulation_dir, num_ts_to_sample=None):
     if num_ts_to_sample:
         ts = _sample_ts_geometrically(len(pfb_files) - 1, num_ts_to_sample)
     else:
-        ts = range(1, len(pfb_files))
+        ts = list(range(1, len(pfb_files)))
 
     out = []
     for t in ts:
@@ -38,7 +69,10 @@ def collect_targets_from_one_simulation(simulation_dir, num_ts_to_sample=None):
     return out, initial_pressure, ts
 
 
-def collect_static_inputs_from_one_simulation(simulation_dir, initial_pressure):
+def collect_static_inputs_from_one_simulation(simulation_dir, mode, initial_pressure):
+    if mode == "stage3":
+        # Source static inputs from the first infil substage.
+        simulation_dir = simulation_dir / "infil01"
     pfmetadata_files = list(simulation_dir.glob("*.pfmetadata"))
     permx_files = list(simulation_dir.glob("*.perm_x.pfb"))
     permz_files = list(simulation_dir.glob("*.perm_z.pfb"))
@@ -81,15 +115,12 @@ def collect_static_inputs_from_one_simulation(simulation_dir, initial_pressure):
 
 
 def collect_dynamic_inputs_from_one_simulation(simulation_dir, ts, mode):
-    nldas_files = list(simulation_dir.glob("clm_input/nldas.dat"))
-    assert len(nldas_files) == 1
-
-    nldas_file = nldas_files[0]
+    nldas_file = simulation_dir / "nldas.dat"
     dynamic_inputs = _sample_nldas(nldas_file, ts)
     dynamic_inputs = torch.from_numpy(dynamic_inputs)  # [t, c].
 
     if mode == "stage3":
-        tcl_scripts = sorted((simulation_dir / "tcl_scripts").glob("*.tcl"))
+        tcl_scripts = sorted((simulation_dir / "infil01" / "tcl_scripts").glob("*.tcl"))
         # We only supply the initial BC pressure.
         bc_pressure = _tcl_path_to_bcpressure(tcl_scripts[0])
         bc_pressure = torch.ones([dynamic_inputs.shape[0], 1]) * bc_pressure
@@ -98,7 +129,7 @@ def collect_dynamic_inputs_from_one_simulation(simulation_dir, ts, mode):
     return dynamic_inputs  # [t, c].
 
 
-def _sample_nldas(nldas_path, ts, hours_per_t=24):
+def _sample_nldas(nldas_path, ts, hours_per_t=48):
     nldas = []
     with open(nldas_path, "r") as f:
         lines = f.readlines()

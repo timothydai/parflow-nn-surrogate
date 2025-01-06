@@ -91,7 +91,7 @@ def test_e2e(args):
         autoencoder = cnn_autoencoder.CNNAutoencoder()
         print("WARNING: Encoding targets with a random autoencoder.")
     else:
-        autoencoder = torch.load(autoencoder_ckpt_path)["model"]
+        autoencoder = torch.load(args.autoencoder_ckpt_path)["model"]
     autoencoder.eval()
     autoencoder.to(device)
 
@@ -175,17 +175,17 @@ if __name__ == "__main__":
     parser.add_argument(
         "--stage1_data_dir",
         type=pathlib.Path,
-        default="data/sample_data",
+        default="data/sample_data/stage1",
     )
     parser.add_argument(
         "--stage2_data_dir",
         type=pathlib.Path,
-        default="data/sample_data",
+        default="data/sample_data/stage2",
     )
     parser.add_argument(
         "--stage3_data_dir",
         type=pathlib.Path,
-        default="data/sample_data",
+        default="data/sample_data/stage3",
     )
     parser.add_argument(
         "--normalization",

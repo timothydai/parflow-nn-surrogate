@@ -11,16 +11,16 @@ from data import utils
 
 
 def get_xs_ys_from_data_dir(data_dir, mode):
-    num_ts_to_sample = 365 if mode == "stage3" else 16
+    num_ts_to_sample = None if mode == "stage3" else 16
     simulation_dirs = [path for path in list(data_dir.glob("*")) if path.is_dir()]
     print("Collecting data...")
     xs, ys = [], []
     for simulation_dir in tqdm.tqdm(simulation_dirs):
         y, initial_pressure, ts = utils.collect_targets_from_one_simulation(
-            simulation_dir, num_ts_to_sample=num_ts_to_sample
+            simulation_dir, mode, num_ts_to_sample=num_ts_to_sample
         )
         x = utils.collect_static_inputs_from_one_simulation(
-            simulation_dir, initial_pressure
+            simulation_dir, mode, initial_pressure
         )
         # [x, y, z, c] --> [t, x, y, z, c].
         x = x.unsqueeze(0)

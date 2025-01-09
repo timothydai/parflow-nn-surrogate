@@ -13,7 +13,7 @@ from torchsummary import summary
 # Set seed before any relative imports.
 os.environ["EXPERIMENT_SEED"] = "0"
 from data import single_frame, time_series
-from losses.lploss import LpLoss
+from losses import lploss
 from models import (
     cnn_autoencoder,
     cnn3d,
@@ -219,8 +219,8 @@ def train(args):
         autoencoder.to(device)
 
     # Define loss.
-    if args.loss == "LpLoss":
-        loss_fn = LpLoss(size_average=False)
+    if args.loss == "NormLpLoss":
+        loss_fn = lploss.NormLpLoss()
     elif args.loss == "MSELoss":
         loss_fn = torch.nn.MSELoss()
     elif args.loss == "L1Loss":
@@ -404,8 +404,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--loss",
         type=str,
-        default="LpLoss",
-        choices=["LpLoss", "MSELoss", "L1Loss", "CrossEntropyLoss"],
+        default="NormLpLoss",
+        choices=["NormLpLoss", "MSELoss", "L1Loss", "CrossEntropyLoss"],
     )
     parser.add_argument("--ckpt", type=pathlib.Path)
     parser.add_argument(

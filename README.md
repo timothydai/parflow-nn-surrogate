@@ -39,7 +39,7 @@ Each architecture requires anywhere from 2 to 32 GB of memory to train (see Tabl
 
 ### To train an autoencoder
 
-```python
+```bash
 python train.py --name <name> \
     --mode autoencoder \
     --model CNNAutoencoder \
@@ -51,7 +51,7 @@ where `<name>` is the name of the experiment (e.g., `my_first_autoencoder`) and 
 
 ### To train a Stage 1 surrogate
 
-```python
+```bash
 python train.py --name <name> \
     --mode stage1 \
     --model <model> \
@@ -65,7 +65,7 @@ All other options can be viewed with `python train.py --help`.
 
 ### To train a Stage 2 surrogate
 
-```python
+```bash
 python train.py --name <name> \
     --mode stage2 \
     --model <model> \
@@ -75,7 +75,7 @@ python train.py --name <name> \
 
 ### To train a Stage 3 surrogate
 
-```python
+```bash
 python train.py --name <name> \
     --mode stage3 \
     --model <model> \
@@ -98,7 +98,7 @@ However, testing can also be initiated separately with the commands below.
 
 ### To test an autoencoder
 
-```python
+```bash
 python test.py \
     --mode autoencoder \
     --ckpt <ckpt> \
@@ -108,7 +108,7 @@ python test.py \
 
 ### To test a Stage 1 surrogate
 
-```python
+```bash
 python test.py \
     --mode stage1 \
     --ckpt <ckpt> \
@@ -118,7 +118,7 @@ python test.py \
 
 ### To test a Stage 2 surrogate
 
-```python
+```bash
 python test.py \
     --mode stage2 \
     --ckpt <ckpt> \
@@ -128,7 +128,7 @@ python test.py \
 
 ### To test a Stage 3 surrogate
 
-```python
+```bash
 python test.py \
     --mode stage3 \
     --ckpt <ckpt> \
@@ -140,7 +140,7 @@ python test.py \
 
 Three checkpoints can be tested together in an end-to-end fashion using the following command:
 
-```python
+```bash
 python e2e.py \
   --name <name> \
   --stage1_ckpt <stage1_ckpt> \

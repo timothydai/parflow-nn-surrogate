@@ -24,15 +24,18 @@ Other versions of Python have not been tested but may also work.
 ### Get sample data
 
 Unzip the sample data and set up the data directory hierarchy with `sh data/sample_data/unzip_all.sh`.
-For users who wish to train on the complete dataset used in the paper, ParFlow output files are available to the public in a [separate repository](https://doi.org/10.25740/hj302gv2126).
+For users who wish to train on the complete dataset used in the paper, complete ParFlow output files are available to the public in a [separate repository](https://doi.org/10.25740/hj302gv2126).
 
 Any external data, provided through the `--data_dir` option, must have its directory hierarchy structured similarly to the sample data.
 
 ## Training
 
 All surrogate architectures described in the paper can be trained using the `train.py` script.
-The script uses `argparse` to take in several command line arguments to specify the model, dataset and hyperparameters.
+The script uses `argparse` to take in several command line arguments to specify the model, dataset, and hyperparameters.
 To view all command-line options, run `python train.py --help`.
+
+As a warning, training models on stages 1, 2 or 3 can be computationally expensive.
+Each architecture requires anywhere from 2 to 32 GB of memory to train (see Table 3 in the paper) and can take several hours on a single GPU.
 
 ### To train an autoencoder
 
